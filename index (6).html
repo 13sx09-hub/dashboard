@@ -1,0 +1,1075 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Diet Recommendation Dashboard</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#111a2e;
+      --card2:#0f172a;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --accent:#60a5fa;
+      --accent2:#34d399;
+      --danger:#fb7185;
+      --border: rgba(255,255,255,.08);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    body{ margin:0; background:linear-gradient(180deg,#071023 0%, var(--bg) 40%, #070c18 100%); color:var(--text); }
+    header{ padding:22px 18px 10px; border-bottom:1px solid var(--border); }
+    .wrap{ max-width:1200px; margin:0 auto; padding:0 16px 30px; }
+    h1{ font-size:20px; margin:0; display:flex; align-items:center; gap:10px; }
+    .pill{
+      border:1px solid var(--border);
+      background:rgba(96,165,250,.08);
+      color: #bfdbfe;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:600;
+    }
+    .sub{ color:var(--muted); margin-top:6px; font-size:13px; }
+    .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    .grid3{ display:grid; grid-template-columns: repeat(3,1fr); gap:12px; }
+    @media (max-width: 980px){ .grid3{grid-template-columns:1fr;} .grid2{grid-template-columns:1fr;} }
+    .card{
+      background:linear-gradient(180deg, rgba(17,26,46,.95), rgba(15,23,42,.92));
+      border:1px solid var(--border);
+      border-radius:14px;
+      box-shadow:var(--shadow);
+      padding:14px;
+    }
+    .card h2{ margin:0 0 10px; font-size:14px; color:#dbeafe; letter-spacing:.2px;}
+    .row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .btn{
+      appearance:none; border:1px solid var(--border);
+      background:rgba(96,165,250,.12);
+      color:#dbeafe;
+      padding:9px 12px; border-radius:12px; cursor:pointer; font-weight:700;
+      transition: transform .06s ease, background .15s ease;
+    }
+    .btn:hover{ background:rgba(96,165,250,.18); transform: translateY(-1px); }
+    .btn.secondary{ background: rgba(52,211,153,.10); }
+    .btn.danger{ background: rgba(251,113,133,.10); }
+    input[type="text"]{
+      flex: 1 1 260px;
+      min-width: 240px;
+      border-radius:12px; padding:10px 12px;
+      border:1px solid var(--border);
+      background:rgba(2,6,23,.35);
+      color:var(--text);
+      outline:none;
+    }
+    input[type="file"]{ display:none; }
+    label.fileBtn{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--border);
+      background:rgba(96,165,250,.10);
+      color:#dbeafe;
+      padding:9px 12px; border-radius:12px; cursor:pointer; font-weight:800;
+      user-select:none;
+    }
+    .status{ margin-top:10px; color:var(--muted); font-size:13px; }
+    .tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+    .tab{
+      padding:9px 12px; border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(2,6,23,.25);
+      color:var(--muted);
+      font-weight:800; cursor:pointer; user-select:none;
+    }
+    .tab.active{ background:rgba(96,165,250,.18); color:#dbeafe; border-color: rgba(96,165,250,.35); }
+    .tabPanel{ display:none; margin-top:14px; }
+    .tabPanel.active{ display:block; }
+    .kv{ display:flex; flex-wrap:wrap; gap:10px; }
+    .kv .item{
+      border:1px solid var(--border); background:rgba(2,6,23,.25);
+      border-radius:12px; padding:10px 12px;
+      min-width: 160px;
+    }
+    .kv .k{ font-size:12px; color:var(--muted); font-weight:800; }
+    .kv .v{ font-size:18px; margin-top:4px; font-weight:900; color:#e0f2fe; }
+    table{
+      width:100%; border-collapse:separate; border-spacing:0;
+      overflow:hidden; border-radius:12px; border:1px solid var(--border);
+      background:rgba(2,6,23,.25);
+    }
+    th,td{ padding:10px 10px; border-bottom:1px solid rgba(255,255,255,.05); font-size:13px; vertical-align:top; }
+    th{ text-align:left; color:#bfdbfe; font-size:12px; letter-spacing:.2px; background:rgba(96,165,250,.08); position:sticky; top:0; z-index:1; }
+    td{ color: #e5e7eb; }
+    tr:last-child td{ border-bottom:none; }
+    .small{ font-size:12px; color:var(--muted); }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
+    .twoCols{
+      display:grid; grid-template-columns: 1.1fr .9fr; gap:12px;
+    }
+    @media (max-width: 980px){ .twoCols{grid-template-columns:1fr;} }
+    .chartWrap{
+      height:320px; padding:10px;
+      border:1px solid var(--border); background:rgba(2,6,23,.25);
+      border-radius:12px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .controls{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      margin: 8px 0 10px;
+    }
+    select{
+      border-radius:12px; padding:10px 12px;
+      border:1px solid var(--border);
+      background:rgba(2,6,23,.35);
+      color:var(--text);
+      outline:none;
+      font-weight:800;
+    }
+    .searchBox{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:rgba(2,6,23,.35);
+      color:var(--text);
+      outline:none;
+      margin:10px 0;
+      font-weight:700;
+    }
+    .footerNote{
+      margin-top:14px; color:var(--muted); font-size:12px; line-height:1.5;
+    }
+    .hidden{ display:none !important; }
+    .badge{
+      display:inline-flex; align-items:center; padding:2px 8px;
+      border-radius:999px; border:1px solid var(--border);
+      background:rgba(2,6,23,.25); color: var(--muted); font-weight:900; font-size:12px;
+    }
+    .badge.ok{ background:rgba(52,211,153,.12); border-color: rgba(52,211,153,.25); color:#a7f3d0; }
+    .badge.warn{ background:rgba(251,191,36,.10); border-color: rgba(251,191,36,.25); color:#fde68a; }
+    .badge.bad{ background:rgba(251,113,133,.10); border-color: rgba(251,113,133,.25); color:#fecdd3; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>
+      🩺 Diet Recommendation Data Dashboard
+      <span class="pill">CSV 탐색 • 요약 • 결측 • 분포</span>
+    </h1>
+    <div class="sub">이 대시보드는 브라우저에서 CSV를 읽어 스키마/통계/결측 정보를 자동 생성합니다.</div>
+
+    <div class="card" style="margin-top:14px; padding:14px 14px;">
+      <div class="row" style="justify-content:space-between;">
+        <div class="row">
+          <input id="csvUrl" type="text" placeholder="CSV 파일 경로(예: diet_recommendations_cleaned_1_.csv). 비워두면 자동 시도." />
+          <button class="btn" id="btnLoadUrl">불러오기</button>
+          <div class="row">
+            <input id="csvFileInput" type="file" accept=".csv" />
+            <label class="fileBtn" for="csvFileInput">📁 로컬 CSV 선택</label>
+          </div>
+        </div>
+      </div>
+      <div class="status" id="status">상태: 아직 CSV를 로드하지 않았습니다.</div>
+      <div class="tabs" id="tabs">
+        <div class="tab active" data-tab="tab_overview">Overview</div>
+        <div class="tab" data-tab="tab_schema">Schema</div>
+        <div class="tab" data-tab="tab_numeric">Numeric Stats</div>
+        <div class="tab" data-tab="tab_text">Text Uniques</div>
+        <div class="tab" data-tab="tab_missing">Missing</div>
+        <div class="tab" data-tab="tab_explore">Explore</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabPanel active" id="tab_overview">
+    <div class="grid2" style="margin-top:14px;">
+      <div class="card">
+        <h2>Dataset 요약</h2>
+        <div class="kv" id="overviewKV">
+          <!-- populated -->
+        </div>
+      </div>
+      <div class="card">
+        <h2>로드 결과</h2>
+        <div id="loadSummary" class="small">
+          <!-- populated -->
+        </div>
+      </div>
+    </div>
+    <div class="grid3" style="margin-top:12px;">
+      <div class="card">
+        <h2>Numerics</h2>
+        <div class="kv">
+          <div class="item"><div class="k">numeric columns</div><div class="v" id="numNumericCols">-</div></div>
+          <div class="item"><div class="k">numeric row coverage</div><div class="v" id="numNumericCoverage">-</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Texts</h2>
+        <div class="kv">
+          <div class="item"><div class="k">text columns</div><div class="v" id="numTextCols">-</div></div>
+          <div class="item"><div class="k">unique cells (총합)</div><div class="v" id="numUniqueCells">-</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Missing</h2>
+        <div class="kv">
+          <div class="item"><div class="k">columns with NA</div><div class="v" id="numMissingCols">-</div></div>
+          <div class="item"><div class="k">missing cells (총합)</div><div class="v" id="numMissingCells">-</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabPanel" id="tab_schema">
+    <div class="card" style="margin-top:14px;">
+      <h2>컬럼 타입(자동 추론)</h2>
+      <div class="small" style="margin-bottom:10px;">
+        숫자 타입은 <span class="mono">정수/실수</span> 패턴을 전부 만족하는 경우로 판정했습니다. 결측 값은 빈 칸/NA 계열을 NA로 처리합니다.
+      </div>
+      <div style="overflow:auto; max-height:520px;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:25%;">Column</th>
+              <th style="width:15%;">Type</th>
+              <th style="width:20%;">Missing</th>
+              <th style="width:20%;">Unique count</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody id="schemaTableBody"></tbody>
+        </table>
+      </div>
+      <div class="footerNote">
+        팁: Patient_ID 같은 ID 컬럼은 문자열로 분류되며 Text Uniques 탭에서 고유값을 확인할 수 있습니다.
+      </div>
+    </div>
+  </div>
+
+  <div class="tabPanel" id="tab_numeric">
+    <div class="twoCols" style="margin-top:14px;">
+      <div class="card">
+        <h2>숫자 컬럼 Min/Max/Avg</h2>
+        <div class="small" style="margin-bottom:10px;">표는 결측 제외(non-missing) 값 기준으로 계산합니다.</div>
+        <div style="overflow:auto; max-height:520px;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:28%;">Numeric Column</th>
+                <th style="width:18%;">Min</th>
+                <th style="width:18%;">Max</th>
+                <th style="width:18%;">Avg</th>
+                <th style="width:18%;">Count</th>
+              </tr>
+            </thead>
+            <tbody id="numericTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>분포(히스토그램)</h2>
+        <div class="controls">
+          <div class="badge" id="histMeta">컬럼을 선택하세요</div>
+          <select id="numericSelect" style="flex:1;">
+            <!-- options -->
+          </select>
+        </div>
+        <div class="chartWrap">
+          <canvas id="histChart" width="420" height="300"></canvas>
+        </div>
+        <div class="small" id="histNote" style="margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabPanel" id="tab_text">
+    <div class="card" style="margin-top:14px;">
+      <h2>텍스트 컬럼 고유값</h2>
+      <div class="small" style="margin-bottom:10px;">
+        고유값이 너무 많을 수 있어, 기본적으로 <span class="mono">상위 30개</span>만 표시합니다. 필요 시(조건에 따라) 더 보여줄 수 있게 준비되어 있습니다.
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+        <div>
+          <div class="small">표에 텍스트 컬럼을 표시할 개수</div>
+          <input id="textLimit" type="text" value="30" style="margin-top:6px;" />
+          <div class="row" style="margin-top:10px;">
+            <button class="btn secondary" id="btnRefreshText">새로고침</button>
+          </div>
+        </div>
+        <div>
+          <div class="small">
+            표시 기준: null/NA는 제외, 공백은 트림 후 빈 문자열은 NA 처리합니다.
+          </div>
+        </div>
+      </div>
+      <div style="overflow:auto; max-height:530px; margin-top:12px;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:25%;">Text Column</th>
+              <th style="width:20%;">Unique count</th>
+              <th style="width:55%;">Top values (comma-separated)</th>
+            </tr>
+          </thead>
+          <tbody id="textTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabPanel" id="tab_missing">
+    <div class="grid2" style="margin-top:14px;">
+      <div class="card">
+        <h2>결측값(빈 칸/NA) 있는 컬럼</h2>
+        <div class="small" style="margin-bottom:10px;">결측이 0인 컬럼은 제외합니다.</div>
+        <div style="overflow:auto; max-height:540px;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:30%;">Column</th>
+                <th style="width:25%;">Missing count</th>
+                <th>Missing ratio</th>
+              </tr>
+            </thead>
+            <tbody id="missingTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Missing 상세</h2>
+        <div class="small" id="missingDetail">
+          <!-- populated -->
+        </div>
+        <div class="footerNote">
+          결측이 없는 경우, Empty/NA 정의를 데이터셋의 실제 표현과 맞춰야 할 수 있습니다.
+          (대시보드는 빈 칸/NA 계열을 NA로 처리합니다.)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabPanel" id="tab_explore">
+    <div class="card" style="margin-top:14px;">
+      <h2>데이터 미리보기 & 검색</h2>
+      <div class="small" style="margin-bottom:10px;">
+        전체를 모두 렌더링하지 않고 최대 <span class="mono" id="previewLimitLabel">200</span>개를 보여줍니다.
+      </div>
+      <input class="searchBox" id="searchBox" type="text" placeholder="모든 컬럼에서 텍스트 검색 (예: 'Low_Sodium', 'Balanced', Patient_ID 등)" />
+      <div class="row">
+        <div class="badge" id="filteredMeta">필터 없음</div>
+        <button class="btn danger" id="btnClearSearch">검색 초기화</button>
+      </div>
+      <div style="overflow:auto; max-height:560px; margin-top:10px;">
+        <table>
+          <thead>
+            <tr id="previewHeaderRow"></tr>
+          </thead>
+          <tbody id="previewBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+(() => {
+  const state = {
+    rawRows: [],   // array of objects
+    columns: [],
+    colTypes: {},  // {col: 'number'|'text'}
+    missingCounts: {}, // {col: count}
+    uniqueCounts: {},  // {col: count}
+    numericStats: {},  // {col: {min,max,avg,count}}
+    textUniques: {},   // {col: [values]}
+    filteredRows: [],
+    chart: null,
+  };
+
+  const tabsEl = document.getElementById('tabs');
+  const setTab = (tabName) => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+    document.querySelectorAll('.tabPanel').forEach(p => p.classList.toggle('active', p.id === tabName));
+  };
+  tabsEl.addEventListener('click', (e) => {
+    const tab = e.target.closest('.tab');
+    if(!tab) return;
+    const tabName = tab.dataset.tab;
+    setTab(tabName);
+  });
+
+  // Utilities
+  const trimOrEmpty = (v) => (v === null || v === undefined) ? '' : String(v).trim();
+  const MISSING = new Set(['','na','n/a','nan','null','none','-','—','–']);
+  const isMissingValue = (v) => MISSING.has(trimOrEmpty(v).toLowerCase());
+  const numPattern = /^-?(?:\\d+\\.?\\d*|\\d*\\.?\\d+)(?:[eE][-+]?\\d+)?$/;
+
+  const detectType = (values) => {
+    // values: array of strings (including missing/empty)
+    let seen = 0;
+    for (const v of values) {
+      const s = trimOrEmpty(v);
+      if (isMissingValue(s)) continue;
+      seen++;
+      if (!numPattern.test(s)) return 'text';
+    }
+    return seen === 0 ? 'text' : 'number';
+  };
+
+  const parseToNumber = (s) => {
+    const x = parseFloat(String(s).trim());
+    return Number.isFinite(x) ? x : null;
+  };
+
+  const safeRound = (x, digits=4) => {
+    if (x === null || x === undefined) return '-';
+    if (!Number.isFinite(x)) return '-';
+    const p = Math.pow(10, digits);
+    return Math.round(x * p) / p;
+  };
+
+  // DOM elements
+  const statusEl = document.getElementById('status');
+  const overviewKV = document.getElementById('overviewKV');
+  const loadSummary = document.getElementById('loadSummary');
+  const schemaTableBody = document.getElementById('schemaTableBody');
+  const numericTableBody = document.getElementById('numericTableBody');
+  const numericSelect = document.getElementById('numericSelect');
+  const histMeta = document.getElementById('histMeta');
+  const histNote = document.getElementById('histNote');
+  const textTableBody = document.getElementById('textTableBody');
+  const textLimitEl = document.getElementById('textLimit');
+  const btnRefreshText = document.getElementById('btnRefreshText');
+  const missingTableBody = document.getElementById('missingTableBody');
+  const missingDetail = document.getElementById('missingDetail');
+  const searchBox = document.getElementById('searchBox');
+  const filteredMeta = document.getElementById('filteredMeta');
+  const btnClearSearch = document.getElementById('btnClearSearch');
+  const previewHeaderRow = document.getElementById('previewHeaderRow');
+  const previewBody = document.getElementById('previewBody');
+  const previewLimitLabel = document.getElementById('previewLimitLabel');
+
+  const numNumericCols = document.getElementById('numNumericCols');
+  const numNumericCoverage = document.getElementById('numNumericCoverage');
+  const numTextCols = document.getElementById('numTextCols');
+  const numUniqueCells = document.getElementById('numUniqueCells');
+  const numMissingCols = document.getElementById('numMissingCols');
+  const numMissingCells = document.getElementById('numMissingCells');
+
+  const btnLoadUrl = document.getElementById('btnLoadUrl');
+  const csvUrlEl = document.getElementById('csvUrl');
+  const csvFileInput = document.getElementById('csvFileInput');
+
+  const showStatus = (msg) => { statusEl.textContent = `상태: ${msg}`; };
+
+  const candidatesFromQuery = () => {
+    const p = new URLSearchParams(location.search);
+    const v = p.get('csv');
+    return v ? [v] : [];
+  };
+
+  const urlCandidates = () => {
+    const fromQuery = candidatesFromQuery();
+    const common = ['diet_recommendations_cleaned_1_.csv', 'diet_recommendations_bmi_capped.csv', 'diet_recommendations_cleaned.csv'];
+    return [...fromQuery, ...common];
+  };
+
+  async function tryFetchText(url){
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) return null;
+      const ct = res.headers.get('content-type') || '';
+      if (ct && !ct.includes('text') && !ct.includes('csv') && !ct.includes('application')) {
+        // still allow
+      }
+      return await res.text();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function loadCSVFromUrl(url){
+    showStatus(`CSV 로딩 중: ${url}`);
+    const text = await tryFetchText(url);
+    if(!text) throw new Error(`파일을 불러올 수 없습니다: ${url}`);
+    return text;
+  }
+
+  function loadCSVFromFile(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('파일 읽기 실패'));
+      reader.onload = () => resolve(reader.result);
+      reader.readAsText(file);
+    });
+  }
+
+  function parseCSVText(csvText){
+    return new Promise((resolve, reject) => {
+      Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: (h) => trimOrEmpty(h),
+        complete: (results) => {
+          if(results.errors && results.errors.length) {
+            // still attempt
+          }
+          const data = results.data || [];
+          if(!results.meta || !results.meta.fields || !results.meta.fields.length){
+            return reject(new Error('헤더를 인식하지 못했습니다. CSV 형식 확인이 필요합니다.'));
+          }
+          resolve({ columns: results.meta.fields, rows: data });
+        },
+        error: (err) => reject(err)
+      });
+    });
+  }
+
+  function computeSummaries(rows, columns){
+    state.rawRows = rows;
+    state.columns = columns;
+
+    state.colTypes = {};
+    state.missingCounts = {};
+    state.uniqueCounts = {};
+    state.numericStats = {};
+    state.textUniques = {};
+
+    // Collect per column values
+    const colValues = {};
+    for(const col of columns) colValues[col] = [];
+    for(const r of rows){
+      for(const col of columns){
+        colValues[col].push(r[col]);
+      }
+    }
+
+    // Missing & Type
+    for(const col of columns){
+      let missing = 0;
+      const values = colValues[col];
+      for(const v of values){
+        if(isMissingValue(v)) missing++;
+      }
+      state.missingCounts[col] = missing;
+      const t = detectType(values);
+      state.colTypes[col] = t;
+
+      // Unique (non-missing)
+      const set = new Set();
+      for(const v of values){
+        if(isMissingValue(v)) continue;
+        set.add(trimOrEmpty(v));
+      }
+      state.uniqueCounts[col] = set.size;
+
+      if(t === 'number'){
+        // Numeric stats
+        let min = Infinity, max = -Infinity, sum = 0, count = 0;
+        for(const v of values){
+          if(isMissingValue(v)) continue;
+          const x = parseToNumber(v);
+          if(x === null) continue;
+          min = Math.min(min, x);
+          max = Math.max(max, x);
+          sum += x;
+          count++;
+        }
+        if(count){
+          const avg = sum / count;
+          state.numericStats[col] = { min, max, avg, count };
+        }
+      } else {
+        // Text uniques list (limit later)
+        const arr = [];
+        const set2 = new Set();
+        for(const v of values){
+          if(isMissingValue(v)) continue;
+          const s = trimOrEmpty(v);
+          if(!set2.has(s)){
+            set2.add(s);
+            arr.push(s);
+          }
+        }
+        state.textUniques[col] = arr;
+      }
+    }
+
+    // Filter numeric stats: keep only those with computed
+    state.numericColumns = columns.filter(c => state.colTypes[c] === 'number' && state.numericStats[c]);
+    state.textColumns = columns.filter(c => state.colTypes[c] !== 'number');
+
+    // Global metrics
+    const totalMissing = Object.values(state.missingCounts).reduce((a,b)=>a+b,0);
+
+    let uniqueCellsSum = 0;
+    for(const col of columns){
+      uniqueCellsSum += state.uniqueCounts[col] || 0;
+    }
+
+    return { totalMissing, uniqueCellsSum };
+  }
+
+  function renderOverview(){
+    const rowsCount = state.rawRows.length;
+    const colsCount = state.columns.length;
+
+    // kv
+    overviewKV.innerHTML = '';
+    const items = [
+      ['Total Rows', rowsCount],
+      ['Total Columns', colsCount],
+      ['Numeric Columns', state.numericColumns.length],
+      ['Text Columns', state.textColumns.length],
+    ];
+    for(const [k,v] of items){
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = `<div class="k">${k}</div><div class="v">${v}</div>`;
+      overviewKV.appendChild(div);
+    }
+
+    // Load summary
+    let missingCols = state.columns.filter(c => state.missingCounts[c] > 0);
+    let missing = Object.values(state.missingCounts).reduce((a,b)=>a+b,0);
+
+    const numericCoverage = (() => {
+      // coverage = non-missing cells average across numeric columns
+      const totalCells = state.numericColumns.length * rowsCount;
+      let nonMissing = 0;
+      for(const col of state.numericColumns){
+        nonMissing += (rowsCount - state.missingCounts[col]);
+      }
+      return totalCells ? (nonMissing/totalCells) : 0;
+    })();
+
+    loadSummary.innerHTML = `
+      <div class="row" style="gap:10px;">
+        <span class="badge ok">Loaded</span>
+        <span class="small">Rows: <span class="mono">${rowsCount}</span></span>
+        <span class="small">Cols: <span class="mono">${colsCount}</span></span>
+      </div>
+      <div class="status" style="margin-top:10px;">
+        Missing cells total: <span class="mono">${missing}</span>, columns with NA: <span class="mono">${missingCols.length}</span>
+      </div>
+    `;
+
+    numNumericCols.textContent = state.numericColumns.length;
+    numNumericCoverage.textContent = (numericCoverage * 100).toFixed(1) + '%';
+    numTextCols.textContent = state.textColumns.length;
+    // unique cell sum
+    let uniqueSum = 0;
+    for(const col of state.columns) uniqueSum += state.uniqueCounts[col] || 0;
+    numUniqueCells.textContent = uniqueSum;
+    numMissingCols.textContent = missingCols.length;
+    numMissingCells.textContent = missing;
+  }
+
+  function renderSchema(){
+    const rowsCount = state.rawRows.length;
+    schemaTableBody.innerHTML = '';
+
+    const cols = state.columns.slice();
+    // sort: numeric first then missing ratio descending
+    cols.sort((a,b)=>{
+      const ta = state.colTypes[a];
+      const tb = state.colTypes[b];
+      if(ta !== tb) return ta === 'number' ? -1 : 1;
+      const ra = state.missingCounts[a]/rowsCount;
+      const rb = state.missingCounts[b]/rowsCount;
+      return rb - ra;
+    });
+
+    for(const col of cols){
+      const missing = state.missingCounts[col] || 0;
+      const uniq = state.uniqueCounts[col] || 0;
+      const type = state.colTypes[col];
+
+      const ratio = rowsCount ? missing/rowsCount : 0;
+      const badgeClass = missing === 0 ? 'ok' : (ratio <= 0.05 ? 'warn' : 'bad');
+      const badgeText = missing === 0 ? '없음' : `${(ratio*100).toFixed(1)}%`;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="mono">${col}</td>
+        <td>${type === 'number' ? 'number' : 'text'}</td>
+        <td>
+          <span class="badge ${badgeClass}">${badgeText}</span>
+          <div class="small">count: <span class="mono">${missing}</span></div>
+        </td>
+        <td><span class="mono">${uniq}</span></td>
+        <td class="small">
+          ${type === 'number'
+            ? `Min/Max/Avg 제공`
+            : `고유값 목록 표시(상위 N)`}
+        </td>
+      `;
+      schemaTableBody.appendChild(tr);
+    }
+  }
+
+  function renderNumeric(){
+    numericTableBody.innerHTML = '';
+    numericSelect.innerHTML = '';
+
+    const cols = state.numericColumns.slice().sort((a,b)=>{
+      const sa = state.numericStats[a];
+      const sb = state.numericStats[b];
+      // sort by name
+      return String(a).localeCompare(String(b));
+    });
+
+    if(!cols.length){
+      numericTableBody.innerHTML = `<tr><td colspan="5" class="small">숫자 컬럼이 없습니다.</td></tr>`;
+      histMeta.textContent = '숫자 컬럼이 없습니다';
+      histNote.textContent = '';
+      return;
+    }
+
+    // fill select
+    for(const col of cols){
+      const opt = document.createElement('option');
+      opt.value = col;
+      opt.textContent = col;
+      numericSelect.appendChild(opt);
+    }
+    numericSelect.value = cols[0];
+
+    // table rows
+    for(const col of cols){
+      const s = state.numericStats[col];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="mono">${col}</td>
+        <td class="mono">${safeRound(s.min)}</td>
+        <td class="mono">${safeRound(s.max)}</td>
+        <td class="mono">${safeRound(s.avg)}</td>
+        <td class="mono">${s.count}</td>
+      `;
+      numericTableBody.appendChild(tr);
+    }
+
+    // chart initial
+    renderHistogram(cols[0]);
+  }
+
+  function renderHistogram(col){
+    const s = state.numericStats[col];
+    const values = [];
+    for(const r of state.rawRows){
+      const v = r[col];
+      if(isMissingValue(v)) continue;
+      const x = parseToNumber(v);
+      if(x === null) continue;
+      values.push(x);
+    }
+    if(!values.length){
+      histMeta.textContent = `${col}: 값 없음`;
+      histNote.textContent = '';
+      return;
+    }
+
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const bins = 20;
+    const span = (max - min) || 1;
+    const binCounts = new Array(bins).fill(0);
+    for(const x of values){
+      let idx = Math.floor(((x - min) / span) * bins);
+      if(idx === bins) idx = bins-1;
+      binCounts[idx]++;
+    }
+    const labels = binCounts.map((_,i)=>{
+      const b0 = min + span * (i / bins);
+      const b1 = min + span * ((i+1)/bins);
+      return `${safeRound(b0,2)}-${safeRound(b1,2)}`;
+    });
+
+    histMeta.textContent = `${col} • n=${values.length} • min=${safeRound(min,4)} max=${safeRound(max,4)}`;
+    histNote.textContent = `히스토그램은 범위를 ${bins}개 구간으로 나누어 집계했습니다.`;
+
+    const ctx = document.getElementById('histChart');
+    const cfg = {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: col,
+          data: binCounts,
+          backgroundColor: 'rgba(96,165,250,.35)',
+          borderColor: 'rgba(96,165,250,.85)',
+          borderWidth: 1,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins:{
+          legend:{ display:false },
+          tooltip:{ callbacks:{
+            label: (c) => ` ${c.raw}개`
+          }}
+        },
+        scales:{
+          x: { ticks: { color: '#cbd5e1', maxRotation: 0, autoSkip: true }, grid:{ display:false }},
+          y: { ticks: { color: '#cbd5e1' }, grid:{ color:'rgba(255,255,255,.06)' } }
+        }
+      }
+    };
+
+    // destroy if exists
+    if(state.chart) state.chart.destroy();
+    state.chart = new Chart(ctx, cfg);
+  }
+
+  function renderTextUniques(){
+    const limit = Math.max(1, parseInt(textLimitEl.value, 10) || 30);
+    textTableBody.innerHTML = '';
+
+    // show text columns sorted by unique count desc (but keep manageable)
+    const cols = state.textColumns.slice().sort((a,b)=>{
+      return (state.uniqueCounts[b]||0) - (state.uniqueCounts[a]||0);
+    });
+
+    if(!cols.length){
+      textTableBody.innerHTML = `<tr><td colspan="3" class="small">텍스트 컬럼이 없습니다.</td></tr>`;
+      return;
+    }
+
+    for(const col of cols){
+      const arr = state.textUniques[col] || [];
+      const uniqCount = arr.length;
+      const top = arr.slice(0, limit).join(', ');
+      const more = uniqCount > limit ? ` (+${uniqCount - limit} more)` : '';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="mono">${col}</td>
+        <td><span class="mono">${uniqCount}</span></td>
+        <td class="small mono" style="white-space:normal;">${escapeHtml(top)}${more ? '<span class="small" style="color:var(--muted);">'+escapeHtml(more)+'</span>' : ''}</td>
+      `;
+      textTableBody.appendChild(tr);
+    }
+  }
+
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'",'&#039;');
+  }
+
+  function renderMissing(){
+    missingTableBody.innerHTML = '';
+    const rowsCount = state.rawRows.length;
+
+    const missingCols = state.columns
+      .filter(c => (state.missingCounts[c] || 0) > 0)
+      .sort((a,b)=> (state.missingCounts[b]-state.missingCounts[a]));
+
+    if(!missingCols.length){
+      missingTableBody.innerHTML = `<tr><td colspan="3" class="small">결측이 없습니다.</td></tr>`;
+      missingDetail.innerHTML = `<span class="badge ok">Missing: 0</span>`;
+      return;
+    }
+
+    for(const col of missingCols){
+      const m = state.missingCounts[col];
+      const ratio = rowsCount ? m/rowsCount : 0;
+      const tr = document.createElement('tr');
+      const ratioPct = (ratio*100).toFixed(2) + '%';
+      tr.innerHTML = `
+        <td class="mono">${col}</td>
+        <td class="mono">${m}</td>
+        <td class="mono">${ratioPct}</td>
+      `;
+      missingTableBody.appendChild(tr);
+    }
+
+    const totalMissing = Object.values(state.missingCounts).reduce((a,b)=>a+b,0);
+    missingDetail.innerHTML = `
+      <div class="row">
+        <span class="badge warn">total missing: ${totalMissing}</span>
+        <span class="badge">columns: ${missingCols.length}</span>
+      </div>
+      <div class="status" style="margin-top:10px;">
+        결측 정의: 빈 칸/NA(n/a/nan/null/none 등)
+      </div>
+    `;
+  }
+
+  function renderPreview(){
+    const previewLimit = 200;
+    previewLimitLabel.textContent = previewLimit;
+
+    const rows = state.filteredRows || state.rawRows;
+    const cols = state.columns;
+
+    // header
+    previewHeaderRow.innerHTML = '';
+    for(const col of cols){
+      const th = document.createElement('th');
+      th.className = 'mono';
+      th.style.maxWidth = '220px';
+      th.textContent = col;
+      previewHeaderRow.appendChild(th);
+    }
+
+    // body
+    previewBody.innerHTML = '';
+    const shown = rows.slice(0, previewLimit);
+    for(const r of shown){
+      const tr = document.createElement('tr');
+      for(const col of cols){
+        const td = document.createElement('td');
+        td.className = 'small mono';
+        let v = r[col];
+        if(isMissingValue(v)) v = '';
+        td.textContent = String(v ?? '');
+        tr.appendChild(td);
+      }
+      previewBody.appendChild(tr);
+    }
+
+    filteredMeta.textContent = `보여주기: ${Math.min(previewLimit, rows.length)}/${rows.length}`;
+  }
+
+  function applySearch(){
+    const q = trimOrEmpty(searchBox.value).toLowerCase();
+    if(!q){
+      state.filteredRows = state.rawRows;
+      renderPreview();
+      return;
+    }
+    // Filter: match any column stringified value
+    const cols = state.columns;
+    const res = [];
+    for(const r of state.rawRows){
+      let hit = false;
+      for(const col of cols){
+        const v = r[col];
+        const s = isMissingValue(v) ? '' : String(v).toLowerCase();
+        if(s.includes(q)){
+          hit = true; break;
+        }
+      }
+      if(hit){ res.push(r); }
+    }
+    state.filteredRows = res;
+    renderPreview();
+  }
+
+  // Main load
+  async function loadFromText(csvText){
+    const parsed = await parseCSVText(csvText);
+    state.rawRows = parsed.rows;
+    state.columns = parsed.columns;
+
+    // CSV parsing can leave extra columns for empty lines; normalize row keys
+    const cols = state.columns;
+    state.rawRows = state.rawRows.map(r => {
+      const obj = {};
+      for(const c of cols){
+        obj[c] = r[c];
+      }
+      return obj;
+    });
+
+    // Summaries
+    computeSummaries(state.rawRows, cols);
+
+    // Render all
+    renderOverview();
+    renderSchema();
+    renderNumeric();
+    renderTextUniques();
+    renderMissing();
+
+    // Explore
+    state.filteredRows = state.rawRows;
+    renderPreview();
+
+    showStatus(`로드 완료 ✅ (Rows: ${state.rawRows.length}, Cols: ${state.columns.length})`);
+  }
+
+  // Events
+  btnLoadUrl.addEventListener('click', async () => {
+    const url = trimOrEmpty(csvUrlEl.value);
+    if(!url){
+      // try auto load instead
+      await autoLoad();
+      return;
+    }
+    try{
+      const csvText = await loadCSVFromUrl(url);
+      await loadFromText(csvText);
+      setTab('tab_overview');
+    }catch(e){
+      showStatus('오류: ' + e.message);
+      alert(e.message);
+    }
+  });
+
+  csvFileInput.addEventListener('change', async () => {
+    const file = csvFileInput.files && csvFileInput.files[0];
+    if(!file) return;
+    try{
+      showStatus('로컬 파일 로딩 중...');
+      const csvText = await loadCSVFromFile(file);
+      await loadFromText(csvText);
+      setTab('tab_overview');
+    }catch(e){
+      showStatus('오류: ' + e.message);
+      alert(e.message);
+    }
+  });
+
+  searchBox.addEventListener('input', () => applySearch());
+  btnClearSearch.addEventListener('click', () => {
+    searchBox.value = '';
+    state.filteredRows = state.rawRows;
+    renderPreview();
+  });
+
+  numericSelect.addEventListener('change', () => {
+    const col = numericSelect.value;
+    if(col) renderHistogram(col);
+  });
+
+  btnRefreshText.addEventListener('click', () => {
+    renderTextUniques();
+  });
+
+  async function autoLoad(){
+    const urls = urlCandidates();
+    // remove duplicates/empties
+    const uniq = [...new Set(urls.filter(Boolean))];
+    for(const u of uniq){
+      const text = await tryFetchText(u);
+      if(text){
+        await loadFromText(text);
+        setTab('tab_overview');
+        return;
+      }
+    }
+    showStatus('자동 로드 실패: 파일 경로를 입력하거나 로컬 CSV를 선택하세요.');
+  }
+
+  // initial
+  (async ()=>{
+    showStatus('자동 로드를 시도합니다...');
+    await autoLoad();
+  })();
+
+})();
+</script>
+</body>
+</html>
