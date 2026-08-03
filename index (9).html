@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>웹 대시보드</title>
+  <style>
+    :root{
+      --bg1:#f6fff9;
+      --bg2:#f3f6ff;
+      --card: rgba(255,255,255,.75);
+      --text:#102015;
+      --muted:#4b5a55;
+      --border: rgba(16,32,21,.10);
+      --accent:#22c55e;
+      --accent2:#3b82f6;
+      --shadow: 0 18px 50px rgba(0,0,0,.08);
+    }
+    *{ box-sizing: border-box; }
+    html, body{
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      color: var(--text);
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      padding: 22px 14px 40px;
+    }
+    .wrap{
+      max-width: 1120px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    header{
+      display: grid;
+      grid-template-columns: 1.1fr 1.6fr 1.2fr;
+      gap: 12px;
+      text-align:center;
+      margin-bottom: 18px;
+    }
+    header h1{
+      grid-column: 1 / -1;
+      margin: 8px 0 6px;
+      font-size: 22px;
+      letter-spacing:-0.4px;
+    }
+    header p{
+      grid-column: 1 / -1;
+      margin:0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    @media (max-width: 920px){
+      header{ grid-template-columns: 1fr; }
+    }
+    .kpi-grid{
+      display:grid;
+      grid-template-columns: 1.1fr 1.6fr 1.2fr;
+      gap: 12px;
+    }
+    @media (max-width: 920px){
+      .kpi-grid{ grid-template-columns: 1fr; }
+    }
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 14px 14px 12px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .card-title{
+      font-weight: 900;
+      font-size: 14px;
+      margin-bottom: 10px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .badge{
+      width:10px;height:10px;border-radius:999px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 0 0 3px rgba(34,197,94,.12);
+      flex: 0 0 auto;
+    }
+    .kpi-value{
+      font-size: 28px;
+      font-weight: 1000;
+      margin: 2px 0 6px;
+      letter-spacing:-0.6px;
+    }
+    .kpi-sub{
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .toplist{
+      margin-top: 8px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .topitem{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap: 12px;
+      padding: 9px 10px;
+      border: 1px solid rgba(16,32,21,.08);
+      background: rgba(255,255,255,.55);
+      border-radius: 12px;
+    }
+    .topitem .name{
+      font-weight: 900;
+      font-size: 13px;
+      color: rgba(16,32,21,.92);
+      max-width: 60%;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .topitem .meta{
+      text-align:right;
+      font-weight: 900;
+      font-size: 13px;
+      color: rgba(16,32,21,.72);
+    }
+    .controls-row{
+      display:flex;
+      gap: 12px;
+      align-items:flex-start;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .filter-card{
+      flex: 1 1 520px;
+      min-width: 320px;
+    }
+    .filter-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .filter-head .title{
+      font-weight: 1000;
+      font-size: 14px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .filters{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 8px 12px;
+      max-height: 160px;
+      overflow:auto;
+      padding-right: 4px;
+    }
+    .filters label{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 6px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(16,32,21,.08);
+      background: rgba(255,255,255,.55);
+      user-select:none;
+    }
+    .btnrow{
+      display:flex; gap:10px; align-items:center; justify-content:flex-end;
+    }
+    button{
+      border:none;
+      border-radius: 12px;
+      padding: 10px 12px;
+      cursor:pointer;
+      font-weight: 1000;
+      font-size: 13px;
+      color:#fff;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 10px 22px rgba(59,130,246,.18);
+      transition: transform .08s ease, filter .15s ease;
+      white-space:nowrap;
+    }
+    button:active{ transform: scale(.99); }
+    .btn-ghost{
+      background: rgba(16,32,21,.06);
+      color: rgba(16,32,21,.86);
+      box-shadow:none;
+      border: 1px solid rgba(16,32,21,.10);
+    }
+    .charts-grid{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .chart-card{
+      padding: 10px 10px 6px;
+    }
+    .chart-title{
+      font-weight: 1000;
+      font-size: 14px;
+      margin: 6px 8px 8px;
+      color: rgba(16,32,21,.92);
+      display:flex; align-items:center; justify-content:space-between;
+      gap: 10px;
+    }
+    .chart-sub{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+    .chart{
+      height: 340px;
+      width: 100%;
+    }
+    .chart-sm{ height: 300px; }
+    .note{
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      text-align:right;
+    }
+
+    @media (max-width: 640px){
+      body{ padding: 16px 10px 30px; }
+      header h1{ font-size: 19px; }
+      header p{ font-size: 12px; }
+      .card{ padding: 12px 12px 10px; border-radius: 14px; }
+      .kpi-value{ font-size: 24px; }
+      .controls-row{ flex-direction: column; }
+      .filter-card{ min-width: 0; width: 100%; }
+      .filters{ max-height: 130px; }
+      .btnrow{ justify-content: stretch; }
+      .btnrow button{ flex: 1 1 auto; text-align:center; }
+      .topitem .name{ max-width: 55%; }
+      .chart{ height: 260px; }
+      .chart-sm{ height: 240px; }
+      .chart-title{ flex-wrap: wrap; row-gap: 4px; }
+    }
+
+    @media (max-width: 380px){
+      header h1{ font-size: 17px; }
+      .kpi-value{ font-size: 21px; }
+      .chart{ height: 220px; }
+      .chart-sm{ height: 200px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>웹 대시보드</h1>
+      <p>원본 데이터 집계값과 화면 KPI/차트가 1:1로 일치하도록, 이 페이지는 데이터를 브라우저에서 직접 집계합니다.</p>
+    </header>
+
+    <div class="kpi-grid">
+      <section class="card" aria-label="전체 건수 KPI">
+        <div class="card-title"><span class="badge"></span>전체 건수</div>
+        <div class="kpi-value" id="kpiTotal">-</div>
+        <div class="kpi-sub" id="kpiTotalSub">필터 적용 전/후 자동 갱신</div>
+      </section>
+
+      <section class="card" aria-label="주요 범주별 건수 KPI">
+        <div class="card-title"><span class="badge"></span>주요 범주별 건수 (Top 5)</div>
+        <div class="kpi-sub" style="margin-top: -2px;">범주: <b id="kpiCategoryName">메뉴</b></div>
+        <div class="toplist" id="kpiTopList"></div>
+      </section>
+
+      <section class="card" aria-label="핵심 수치 KPI">
+        <div class="card-title"><span class="badge"></span>결제금액 합계 / 평균</div>
+        <div class="kpi-value" id="kpiPaySum">-</div>
+        <div class="kpi-sub"><span id="kpiPayAvg">-</span></div>
+      </section>
+    </div>
+
+    <div class="controls-row">
+      <section class="card filter-card" aria-label="범주 필터">
+        <div class="filter-head">
+          <div class="title">
+            <span class="badge"></span>
+            메뉴 필터
+          </div>
+          <div class="btnrow">
+            <button type="button" class="btn-ghost" id="btnReset">필터 초기화</button>
+          </div>
+        </div>
+        <div class="filters" id="menuFilters"></div>
+        <div class="note">선택한 메뉴 기준으로 KPI와 모든 차트가 함께 갱신됩니다.</div>
+      </section>
+    </div>
+
+    <div class="charts-grid">
+      <section class="card chart-card" aria-label="메뉴별 건수 막대 차트">
+        <div class="chart-title">
+          <span>1) <b>메뉴</b>별 건수</span>
+          <span class="chart-sub">단위: 건수(건)</span>
+        </div>
+        <div id="barChart" class="chart"></div>
+      </section>
+
+      <section class="card chart-card" aria-label="결제금액 분포 히스토그램">
+        <div class="chart-title">
+          <span>2) <b>결제금액</b> 분포</span>
+          <span class="chart-sub">단위: 건수(건)</span>
+        </div>
+        <div id="histChart" class="chart chart-sm"></div>
+      </section>
+
+      <section class="card chart-card" aria-label="주문일시 날짜 추이 선 그래프">
+        <div class="chart-title">
+          <span>3) <b>주문일시</b> 날짜 기준 추이</span>
+          <span class="chart-sub">단위: 건수(건)</span>
+        </div>
+        <div id="lineChart" class="chart chart-sm"></div>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+  <script>
+    const DATA = [{"주문ID": "C1001", "주문일시": "2026-07-06T08:00:00", "매장명": "강남점", "메뉴": "아메리카노", "단가": 4000, "수량": 1, "결제금액": 4000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1002", "주문일시": "2026-07-06T08:20:00", "매장명": "홍대점", "메뉴": "카페라떼", "단가": 5000, "수량": 2, "결제금액": 10000, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1003", "주문일시": "2026-07-06T08:40:00", "매장명": "판교점", "메뉴": "카푸치노", "단가": 5000, "수량": 1, "결제금액": 5000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1004", "주문일시": "2026-07-06T09:00:00", "매장명": "잠실점", "메뉴": "바닐라라떼", "단가": 5500, "수량": 3, "결제금액": 16500, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1005", "주문일시": "2026-07-06T09:20:00", "매장명": "강남점", "메뉴": "콜드브루", "단가": 5000, "수량": 2, "결제금액": 10000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1006", "주문일시": "2026-07-06T09:40:00", "매장명": "홍대점", "메뉴": "자몽에이드", "단가": 6000, "수량": 1, "결제금액": 6000, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1007", "주문일시": "2026-07-06T10:00:00", "매장명": "판교점", "메뉴": "딸기라떼", "단가": 6000, "수량": 2, "결제금액": 12000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1008", "주문일시": "2026-07-06T10:20:00", "매장명": "강남점", "메뉴": "녹차라떼", "단가": 5500, "수량": 1, "결제금액": 5500, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1009", "주문일시": "2026-07-06T10:40:00", "매장명": "강남점", "메뉴": "아인슈페너", "단가": 6500, "수량": 1, "결제금액": 6500, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1010", "주문일시": "2026-07-06T11:00:00", "매장명": "홍대점", "메뉴": "에스프레소", "단가": 3500, "수량": 2, "결제금액": 7000, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1011", "주문일시": "2026-07-06T11:20:00", "매장명": "판교점", "메뉴": "아메리카노", "단가": 4000, "수량": 1, "결제금액": 4000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1012", "주문일시": "2026-07-06T11:40:00", "매장명": "잠실점", "메뉴": "카페라떼", "단가": 5000, "수량": 2, "결제금액": 10000, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1013", "주문일시": "2026-07-06T12:00:00", "매장명": "강남점", "메뉴": "카푸치노", "단가": 5000, "수량": 1, "결제금액": 5000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1014", "주문일시": "2026-07-06T12:20:00", "매장명": "홍대점", "메뉴": "바닐라라떼", "단가": 5500, "수량": 3, "결제금액": 16500, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1015", "주문일시": "2026-07-06T12:40:00", "매장명": "판교점", "메뉴": "콜드브루", "단가": 5000, "수량": 2, "결제금액": 10000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1016", "주문일시": "2026-07-06T13:00:00", "매장명": "잠실점", "메뉴": "자몽에이드", "단가": 6000, "수량": 1, "결제금액": 6000, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1017", "주문일시": "2026-07-06T13:20:00", "매장명": "강남점", "메뉴": "딸기라떼", "단가": 6000, "수량": 2, "결제금액": 12000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1018", "주문일시": "2026-07-06T13:40:00", "매장명": "홍대점", "메뉴": "녹차라떼", "단가": 5500, "수량": 1, "결제금액": 5500, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1020", "주문일시": "2026-07-06T14:20:00", "매장명": "잠실점", "메뉴": "에스프레소", "단가": 3500, "수량": 2, "결제금액": 7000, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1021", "주문일시": "2026-07-06T14:40:00", "매장명": "강남점", "메뉴": "아메리카노", "단가": 4000, "수량": 1, "결제금액": 4000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1022", "주문일시": "2026-07-06T15:00:00", "매장명": "홍대점", "메뉴": "카페라떼", "단가": 5000, "수량": 2, "결제금액": 10000, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1023", "주문일시": "2026-07-06T15:20:00", "매장명": "판교점", "메뉴": "카푸치노", "단가": 5000, "수량": 1, "결제금액": 5000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1024", "주문일시": "2026-07-06T15:40:00", "매장명": "잠실점", "메뉴": "바닐라라떼", "단가": 5500, "수량": 3, "결제금액": 16500, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1025", "주문일시": "2026-07-06T16:00:00", "매장명": "강남점", "메뉴": "아메리카노", "단가": 5000, "수량": 2, "결제금액": 10000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1026", "주문일시": "2026-07-06T16:20:00", "매장명": "홍대점", "메뉴": "자몽에이드", "단가": 6000, "수량": 1, "결제금액": 6000, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1027", "주문일시": "2026-07-06T16:40:00", "매장명": "판교점", "메뉴": "딸기라떼", "단가": 6000, "수량": 2, "결제금액": 12000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1028", "주문일시": "2026-07-06T17:00:00", "매장명": "잠실점", "메뉴": "녹차라떼", "단가": 5500, "수량": 1, "결제금액": 5500, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1029", "주문일시": "2026-07-06T17:20:00", "매장명": "강남점", "메뉴": "아인슈페너", "단가": 6500, "수량": 1, "결제금액": 6500, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1030", "주문일시": "2026-07-06T17:40:00", "매장명": "홍대점", "메뉴": "에스프레소", "단가": 3500, "수량": 2, "결제금액": 0, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 1}, {"주문ID": "C1031", "주문일시": "2026-07-06T18:00:00", "매장명": "판교점", "메뉴": "아메리카노", "단가": 4000, "수량": 1, "결제금액": 4000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1032", "주문일시": "2026-07-06T18:20:00", "매장명": "잠실점", "메뉴": "카페라떼", "단가": 5000, "수량": 2, "결제금액": 10000, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1033", "주문일시": "2026-07-06T18:40:00", "매장명": "강남점", "메뉴": "카푸치노", "단가": 5000, "수량": 1, "결제금액": 5000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1034", "주문일시": "2026-07-06T19:00:00", "매장명": "홍대점", "메뉴": "바닐라라떼", "단가": 5500, "수량": 3, "결제금액": 16500, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1035", "주문일시": "2026-07-06T19:20:00", "매장명": "판교점", "메뉴": "콜드브루", "단가": 5000, "수량": 2, "결제금액": 10000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1036", "주문일시": "2026-07-06T19:40:00", "매장명": "잠실점", "메뉴": "자몽에이드", "단가": 6000, "수량": 1, "결제금액": 6000, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1037", "주문일시": "2026-07-06T20:00:00", "매장명": "강남점", "메뉴": "딸기라떼", "단가": 6000, "수량": 2, "결제금액": 12000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1038", "주문일시": "2026-07-06T20:20:00", "매장명": "홍대점", "메뉴": "녹차라떼", "단가": 5500, "수량": 1, "결제금액": 5500, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1039", "주문일시": "2026-07-06T20:40:00", "매장명": "판교점", "메뉴": "아인슈페너", "단가": 6500, "수량": 1, "결제금액": 6500, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1040", "주문일시": "2026-07-06T21:00:00", "매장명": "잠실점", "메뉴": "에스프레소", "단가": 3500, "수량": 2, "결제금액": 7000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1041", "주문일시": "2026-07-06T21:20:00", "매장명": "강남점", "메뉴": "아메리카노", "단가": 4000, "수량": 1, "결제금액": 4000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1042", "주문일시": "2026-07-06T21:40:00", "매장명": "홍대점", "메뉴": "카페라떼", "단가": 5000, "수량": 2, "결제금액": 10000, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1043", "주문일시": "2026-07-06T22:00:00", "매장명": "판교점", "메뉴": "카푸치노", "단가": 5000, "수량": 1, "결제금액": 5000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1044", "주문일시": "2026-07-06T22:20:00", "매장명": "잠실점", "메뉴": "바닐라라떼", "단가": 5500, "수량": 3, "결제금액": 16500, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1045", "주문일시": "2026-07-06T22:40:00", "매장명": "강남점", "메뉴": "콜드브루", "단가": 5000, "수량": 2, "결제금액": 10000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1046", "주문일시": "2026-07-06T23:00:00", "매장명": "홍대점", "메뉴": "자몽에이드", "단가": 6000, "수량": 1, "결제금액": 6000, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1047", "주문일시": "2026-07-06T23:20:00", "매장명": "판교점", "메뉴": "딸기라떼", "단가": 6000, "수량": 2, "결제금액": 12000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1048", "주문일시": "2026-07-06T23:40:00", "매장명": "잠실점", "메뉴": "녹차라떼", "단가": 5500, "수량": 1, "결제금액": 5500, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1049", "주문일시": "2026-07-07T00:00:00", "매장명": "강남점", "메뉴": "아인슈페너", "단가": 6500, "수량": 1, "결제금액": 6500, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1050", "주문일시": "2026-07-07T00:20:00", "매장명": "홍대점", "메뉴": "에스프레소", "단가": 3500, "수량": 2, "결제금액": 7000, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1051", "주문일시": "2026-07-07T00:40:00", "매장명": "판교점", "메뉴": "아메리카노", "단가": 4000, "수량": 1, "결제금액": 4000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1052", "주문일시": "2026-07-07T01:00:00", "매장명": "강남점", "메뉴": "카페라떼", "단가": 5000, "수량": 2, "결제금액": 10000, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1053", "주문일시": "2026-07-07T01:20:00", "매장명": "강남점", "메뉴": "카푸치노", "단가": 5000, "수량": 1, "결제금액": 5000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1054", "주문일시": "2026-07-07T01:40:00", "매장명": "홍대점", "메뉴": "바닐라라떼", "단가": 5500, "수량": 3, "결제금액": 16500, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1055", "주문일시": "2026-07-07T02:00:00", "매장명": "판교점", "메뉴": "콜드브루", "단가": 5000, "수량": 2, "결제금액": 10000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1056", "주문일시": "2026-07-07T02:20:00", "매장명": "잠실점", "메뉴": "자몽에이드", "단가": 6000, "수량": 1, "결제금액": 6000, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1057", "주문일시": "2026-07-07T02:40:00", "매장명": "강남점", "메뉴": "딸기라떼", "단가": 6000, "수량": 2, "결제금액": 12000, "회원여부": "회원", "무료플래그(무료쿠폰여부)": 0}, {"주문ID": "C1058", "주문일시": "2026-07-07T03:00:00", "매장명": "홍대점", "메뉴": "녹차라떼", "단가": 5500, "수량": 1, "결제금액": 5500, "회원여부": "비회원", "무료플래그(무료쿠폰여부)": 0}];
+    const MENU_LIST = ["녹차라떼", "딸기라떼", "바닐라라떼", "아메리카노", "아인슈페너", "에스프레소", "자몽에이드", "카페라떼", "카푸치노", "콜드브루"];
+
+    const fmtInt = (n) => new Intl.NumberFormat('ko-KR').format(n);
+    const fmtMoney = (n) => new Intl.NumberFormat('ko-KR').format(n) + "원";
+    const fmtPct = (p) => (p*100).toFixed(1) + "%";
+
+    let selectedMenus = new Set(MENU_LIST);
+
+    const menuFiltersEl = document.getElementById('menuFilters');
+    const kpiTotalEl = document.getElementById('kpiTotal');
+    const kpiTotalSubEl = document.getElementById('kpiTotalSub');
+    const kpiTopListEl = document.getElementById('kpiTopList');
+    const kpiPaySumEl = document.getElementById('kpiPaySum');
+    const kpiPayAvgEl = document.getElementById('kpiPayAvg');
+    const btnReset = document.getElementById('btnReset');
+
+    function dateKey(iso){
+      return iso.slice(0,10); // YYYY-MM-DD
+    }
+
+    function filteredRows(){
+      return DATA.filter(r => selectedMenus.has(r['메뉴']));
+    }
+
+    function buildFilterUI(){
+      menuFiltersEl.innerHTML = "";
+      for (const menu of MENU_LIST){
+        const id = "chk_"+menu.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9가-힣_-]/g,'');
+        const label = document.createElement('label');
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = true;
+        cb.value = menu;
+        cb.id = id;
+        cb.addEventListener('change', () => {
+          if (cb.checked) selectedMenus.add(menu);
+          else selectedMenus.delete(menu);
+          updateDashboard();
+        });
+        const text = document.createElement('span');
+        text.textContent = menu;
+        label.appendChild(cb);
+        label.appendChild(text);
+        menuFiltersEl.appendChild(label);
+      }
+    }
+
+    function renderKPI(filtered){
+      const totalCount = filtered.length;
+
+      kpiTotalEl.textContent = fmtInt(totalCount) + "건";
+      const selCount = selectedMenus.size;
+      kpiTotalSubEl.textContent = `선택 메뉴: ${selCount}개`;
+
+      const counts = new Map();
+      for (const r of filtered){
+        const m = r['메뉴'];
+        counts.set(m, (counts.get(m) || 0) + 1);
+      }
+
+      const list = Array.from(counts.entries())
+        .map(([menu, cnt]) => ({menu, cnt, ratio: totalCount ? cnt/totalCount : 0}))
+        .sort((a,b) => b.cnt - a.cnt || a.menu.localeCompare(b.menu, 'ko'));
+
+      const top = list.slice(0,5);
+      kpiTopListEl.innerHTML = "";
+
+      if (top.length === 0){
+        const empty = document.createElement('div');
+        empty.className = "topitem";
+        empty.innerHTML = "<div class='name'>데이터 없음</div><div class='meta'>0건</div>";
+        kpiTopListEl.appendChild(empty);
+      } else {
+        for (const item of top){
+          const div = document.createElement('div');
+          div.className = "topitem";
+          div.innerHTML = `
+            <div class="name">${item.menu}</div>
+            <div class="meta">${fmtInt(item.cnt)}건<br><span style="color:rgba(16,32,21,.55);font-weight:1000;">${fmtPct(item.ratio)}</span></div>
+          `;
+          kpiTopListEl.appendChild(div);
+        }
+      }
+
+      const paySum = filtered.reduce((acc,r) => acc + (Number(r['결제금액'])||0), 0);
+      const payAvg = totalCount ? (paySum / totalCount) : 0;
+
+      kpiPaySumEl.textContent = fmtMoney(paySum);
+      kpiPayAvgEl.textContent = `평균: ${fmtMoney(Math.round(payAvg))} / 건당`;
+    }
+
+    function renderBarChart(filtered){
+      const totalCount = filtered.length;
+      const counts = new Map();
+      for (const r of filtered){
+        const m = r['메뉴'];
+        counts.set(m, (counts.get(m) || 0) + 1);
+      }
+
+      const list = Array.from(counts.entries())
+        .map(([menu,cnt]) => ({menu,cnt,ratio: totalCount ? cnt/totalCount : 0}))
+        .sort((a,b) => b.cnt - a.cnt || a.menu.localeCompare(b.menu, 'ko'));
+
+      const x = list.map(d => d.menu);
+      const y = list.map(d => d.cnt);
+      const ratios = list.map(d => d.ratio);
+
+      const trace = {
+        type: "bar",
+        x, y,
+        customdata: ratios,
+        marker: { color: "rgba(34,197,94,.65)" },
+        hovertemplate: `
+          <b>%{x}</b><br/>
+          건수: %{y}건<br/>
+          비율: %{customdata[0]:.1%}<extra></extra>
+        `
+      };
+
+      const layout = {
+        margin: {l: 55, r: 10, t: 10, b: 70},
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        xaxis: {
+          title: { text: "메뉴", standoff: 22 },
+          tickangle: -20
+        },
+        yaxis: {
+          title: { text: "주문 건수(건)", standoff: 18 },
+          rangemode: "tozero",
+          gridcolor: "rgba(16,32,21,.10)"
+        },
+        showlegend: false,
+        hovermode: "closest"
+      };
+
+      Plotly.react('barChart', [trace], layout, {displayModeBar:false, responsive:true});
+    }
+
+    function renderHistChart(filtered){
+      const totalCount = filtered.length;
+      const values = filtered.map(r => Number(r['결제금액'])||0);
+      const binsCount = 10;
+
+      if (values.length === 0){
+        Plotly.react('histChart', [{
+          type:'bar', x:['(없음)'], y:[0],
+          hovertemplate: '데이터 없음<extra></extra>'
+        }], {
+          margin: {l: 55, r: 10, t: 10, b: 70},
+          paper_bgcolor: "rgba(0,0,0,0)",
+          plot_bgcolor: "rgba(0,0,0,0)",
+          xaxis: { title:{text:'결제금액(원)'}, tickangle:-25 },
+          yaxis: { title:{text:'건수(건)'} },
+          showlegend:false
+        }, {displayModeBar:false, responsive:true});
+        return;
+      }
+
+      let minV = Math.min(...values);
+      let maxV = Math.max(...values);
+
+      let labels=[], counts=[], ratios=[];
+      if (minV === maxV){
+        labels = [fmtInt(minV) + "원"];
+        counts = [values.length];
+        ratios = [1];
+      } else {
+        const width = (maxV - minV) / binsCount;
+        const safeWidth = width <= 0 ? 1 : width;
+        const tmpCounts = new Array(binsCount).fill(0);
+
+        for (const v of values){
+          let idx = Math.floor((v - minV) / safeWidth);
+          if (idx < 0) idx = 0;
+          if (idx >= binsCount) idx = binsCount - 1;
+          tmpCounts[idx] += 1;
+        }
+
+        for (let i=0; i<binsCount; i++){
+          const low = Math.round(minV + i*safeWidth);
+          const high = Math.round(minV + (i+1)*safeWidth);
+          let label = `${fmtInt(low)}원 ~ ${fmtInt(high)}원`;
+          if (i === binsCount - 1) label = `${fmtInt(low)}원 ~ ${fmtInt(maxV)}원`;
+          labels.push(label);
+          counts.push(tmpCounts[i]);
+          ratios.push(totalCount ? tmpCounts[i]/totalCount : 0);
+        }
+      }
+
+      const trace = {
+        type: 'bar',
+        x: labels,
+        y: counts,
+        customdata: ratios,
+        marker: { color: 'rgba(59,130,246,.55)' },
+        hovertemplate: `
+          <b>%{x}</b><br/>
+          건수: %{y}건<br/>
+          비율: %{customdata[0]:.1%}<extra></extra>
+        `
+      };
+
+      const layout = {
+        margin: {l: 55, r: 10, t: 10, b: 120},
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        xaxis: { title: { text: "결제금액(원)", standoff: 22 }, tickangle: -25 },
+        yaxis: { title: { text: "건수(건)", standoff: 18 }, gridcolor: "rgba(16,32,21,.10)" },
+        showlegend: false,
+        hovermode: "closest"
+      };
+
+      Plotly.react('histChart', [trace], layout, {displayModeBar:false, responsive:true});
+    }
+
+    function renderTrendChart(filtered){
+      const totalCount = filtered.length;
+      const byDate = new Map();
+      for (const r of filtered){
+        const key = dateKey(r['주문일시']);
+        byDate.set(key, (byDate.get(key) || 0) + 1);
+      }
+
+      const list = Array.from(byDate.entries())
+        .map(([date,cnt]) => ({date,cnt,ratio: totalCount ? cnt/totalCount : 0}))
+        .sort((a,b) => a.date.localeCompare(b.date));
+
+      const x = list.map(d => d.date);
+      const y = list.map(d => d.cnt);
+      const ratios = list.map(d => d.ratio);
+
+      const trace = {
+        type: 'scatter',
+        mode: 'lines+markers',
+        x, y,
+        customdata: ratios,
+        line: { color: 'rgba(34,197,94,.9)', width: 3 },
+        marker: { size: 8, color: 'rgba(34,197,94,.75)' },
+        hovertemplate: `
+          <b>%{x}</b><br/>
+          건수: %{y}건<br/>
+          비율: %{customdata[0]:.1%}<extra></extra>
+        `
+      };
+
+      const layout = {
+        margin: {l: 55, r: 10, t: 10, b: 60},
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        xaxis: { title: { text: "주문일자(YYYY-MM-DD)", standoff: 18 }, tickangle: 0, gridcolor: "rgba(16,32,21,.08)" },
+        yaxis: { title: { text: "주문 건수(건)", standoff: 18 }, gridcolor: "rgba(16,32,21,.10)" },
+        showlegend: false,
+        hovermode: "closest"
+      };
+
+      Plotly.react('lineChart', [trace], layout, {displayModeBar:false, responsive:true});
+    }
+
+    function updateDashboard(){
+      const filtered = filteredRows();
+      renderKPI(filtered);
+      renderBarChart(filtered);
+      renderHistChart(filtered);
+      renderTrendChart(filtered);
+    }
+
+    btnReset.addEventListener('click', () => {
+      selectedMenus = new Set(MENU_LIST);
+      const inputs = menuFiltersEl.querySelectorAll('input[type="checkbox"]');
+      inputs.forEach(inp => inp.checked = true);
+      updateDashboard();
+    });
+
+    buildFilterUI();
+    updateDashboard();
+    Plotly.setPlotConfig({responsive:true});
+  </script>
+</body>
+</html>
